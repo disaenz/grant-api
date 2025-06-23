@@ -1,0 +1,36 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+venv/
+.venv/
+ENV/
+env/
+.env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing / Coverage / Temporary files
+.tox/
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+*.log
+
+# Editor and IDE directories
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Version control system files
+.git
+.gitignore
