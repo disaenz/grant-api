@@ -1,7 +1,6 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
@@ -11,8 +10,14 @@ from services.grant_service import fetch_grant, fetch_all, add_grant, change_gra
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/grants", tags=["Grants"])
-
+router = APIRouter(
+  prefix="/api/grants",
+  tags=["Grants"],
+  responses={ 
+    422: {"model": APIError},
+    404: {"model": APIError},
+  }
+)
 
 @router.get("/", response_model=list[GrantResponse])
 async def list_all_grants(db: AsyncSession = Depends(get_db)):
@@ -28,7 +33,8 @@ async def get_one_grant(grant_id: int, db: AsyncSession = Depends(get_db)):
     grant = await fetch_grant(db, grant_id)
     if not grant:
         logger.debug("Grant %d not found", grant_id)
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=APIError(error="Grant not found").model_dump())
+        api_err = APIError(error=f"Grant {grant_id} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=api_err.model_dump())
     logger.debug("Returning grant: %s", grant)
     return grant
 
@@ -47,7 +53,8 @@ async def update_existing_grant(grant_id: int, grant_in: GrantUpdate, db: AsyncS
     existing = await fetch_grant(db, grant_id)
     if not existing:
         logger.debug("Grant %d not found for update", grant_id)
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=APIError(error="Grant not found").model_dump())
+        api_err = APIError(error=f"Grant {grant_id} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=api_err.model_dump())
     updated_id = await change_grant(db, grant_id, grant_in)
     logger.debug("Updated grant %d", grant_id)
     return GrantUpdateResponse(success=True, id=updated_id)
