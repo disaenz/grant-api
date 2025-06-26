@@ -45,6 +45,7 @@ jobs:
       - name: "🐳 Build & Push Docker image"
         id: build_image
         run: |
+          set -e
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
           docker buildx build \
@@ -53,8 +54,9 @@ jobs:
             -t $IMAGE_URI \
             .
           docker push $IMAGE_URI
-          echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
-          echo "DEBUG (build_image step) - IMAGE_URI: $IMAGE_URI"
+          IMAGE_URI="some-fake-value:latest"
+          echo "DEBUG: $IMAGE_URI"
+          echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
     
       - name: "🧹 Cleanup all untagged images in ECR"
         run: |
