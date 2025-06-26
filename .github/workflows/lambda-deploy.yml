@@ -23,39 +23,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: "🆔 Get AWS Account ID"
-        run: |
-          echo "ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> $GITHUB_ENV
-
       - name: "🔓 Login to ECR"
         uses: aws-actions/amazon-ecr-login@v1
-    
-      - name: "🔒 Docker login to private ECR"
-        run: |
-            aws ecr get-login-password \
-                --region ${{ secrets.AWS_REGION }} \
-            | docker login \
-                --username AWS \
-                --password-stdin \
-                ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
 
       - name: "🐳 Build & Push Docker image"
-        run: |        
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+        run: |
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.lambda \
-            -t $IMAGE_URI \
+            -t ${{ secrets.IMAGE_URI }} \
             .
-          docker push $IMAGE_URI
-    
+          docker push ${{ secrets.IMAGE_URI }}
+
       - name: "🧹 Cleanup all untagged images in ECR"
         run: |
           REPO_NAME=${{ env.ECR_REPOSITORY }}
           REGION=${{ secrets.AWS_REGION }}
-          # Get all untagged image IDs (as JSON array)
           IMAGE_IDS=$(aws ecr list-images \
             --repository-name "$REPO_NAME" \
             --region "$REGION" \
@@ -87,17 +70,10 @@ jobs:
       - name: "🔓 Login to ECR"
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: "Rebuild IMAGE_URI"
-        id: rebuild_image_uri
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          IMAGE_URI="${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
       - name: "🛡️ Scan image"
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.IMAGE_URI }}
+          image-ref: ${{ secrets.IMAGE_URI }}
           severity: CRITICAL
           exit-code: '1'
 
@@ -117,4 +93,4 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name grant-api \
-            --image-uri ${{ needs.build.outputs.image_uri }}
+            --image-uri ${{ secrets.IMAGE_URI }}
