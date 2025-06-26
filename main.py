@@ -38,6 +38,11 @@ app.add_middleware(
 # Include the grant routes
 app.include_router(grant_router)
 
+# ======== NEEDED FOR LAMBDA ========
+from mangum import Mangum
+handler = Mangum(app)
+# =====================================
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
