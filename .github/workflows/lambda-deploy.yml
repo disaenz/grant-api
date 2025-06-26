@@ -54,8 +54,7 @@ jobs:
             .
           docker push $IMAGE_URI
           echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
-          echo "DEBUG - $IMAGE_URI"
-          ls -la
+          echo "DEBUG (build_image step) - IMAGE_URI: $IMAGE_URI"
     
       - name: "🧹 Cleanup all untagged images in ECR"
         run: |
@@ -95,7 +94,7 @@ jobs:
 
       - name: "🐞 Debug: Print image URI"
         run: |
-            echo "IMAGE_URI: ${{ needs.build.outputs.image_uri }}"
+            echo "IMAGE_URI from build output: ${{ needs.build.outputs.image_uri }}"
 
       - name: "🛡️ Scan image"
         uses: aquasecurity/trivy-action@master
