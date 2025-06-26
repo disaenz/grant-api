@@ -1,9 +1,5 @@
 FROM public.ecr.aws/lambda/python:3.12
 
-# Update base OS packages to pick up the latest security patches (glibc, libarchive, libxml2, etc.)
-RUN microdnf update -y \
-    && microdnf clean all
-
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
