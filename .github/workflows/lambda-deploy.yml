@@ -12,8 +12,6 @@ jobs:
   build:
     name: "🐳 Build & Push Image"
     runs-on: ubuntu-latest
-    outputs:
-      image_uri: ${{ steps.build_image.outputs.image_uri }}
     steps:
       - name: "🔄 Checkout repository"
         uses: actions/checkout@v3
@@ -43,7 +41,6 @@ jobs:
 
 
       - name: "🐳 Build & Push Docker image"
-        id: build_image
         run: |        
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
@@ -53,8 +50,6 @@ jobs:
             -t $IMAGE_URI \
             .
           docker push $IMAGE_URI
-          echo "DEBUG: $IMAGE_URI"
-          echo "image_uri=\"$IMAGE_URI\"" >> $GITHUB_OUTPUT
     
       - name: "🧹 Cleanup all untagged images in ECR"
         run: |
@@ -92,14 +87,18 @@ jobs:
       - name: "🔓 Login to ECR"
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: "🐞 Debug: Print image URI"
+      - name: "Rebuild IMAGE_URI"
+        id: rebuild_image_uri
         run: |
-            echo "IMAGE_URI from build output: ${{ needs.build.outputs.image_uri }}"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          IMAGE_URI="${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "Debug rebuilt IMAGE_URI: $IMAGE_URI"
 
       - name: "🛡️ Scan image"
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ needs.build.outputs.image_uri }}
+          image-ref: ${{ env.IMAGE_URI }}
           severity: CRITICAL,HIGH
           exit-code: '1'
 
