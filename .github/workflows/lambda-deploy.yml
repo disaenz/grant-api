@@ -55,27 +55,26 @@ jobs:
           docker push $IMAGE_URI
           echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
     
-      - name: "🧹 Cleanup dangling <none> images in ECR"
+      - name: "🧹 Cleanup all untagged images in ECR"
         run: |
-            REPO_NAME=${{ env.ECR_REPOSITORY }}
-            REGION=${{ secrets.AWS_REGION }}
-
-            # Get image digests with <none> tag
-            aws ecr list-images \
+          REPO_NAME=${{ env.ECR_REPOSITORY }}
+          REGION=${{ secrets.AWS_REGION }}
+          # Get all untagged image IDs (as JSON array)
+          IMAGE_IDS=$(aws ecr list-images \
             --repository-name "$REPO_NAME" \
             --region "$REGION" \
             --filter tagStatus=UNTAGGED \
-            --query 'imageIds[*].imageDigest' \
-            --output text \
-            | while read digest; do
-                if [ -n "$digest" ]; then
-                    echo "Deleting image with digest: $digest"
-                    aws ecr batch-delete-image \
-                    --repository-name "$REPO_NAME" \
-                    --region "$REGION" \
-                    --image-ids imageDigest="$digest"
-                fi
-                done
+            --query 'imageIds' \
+            --output json)
+          if [ "$IMAGE_IDS" != "[]" ]; then
+            echo "Deleting untagged images..."
+            aws ecr batch-delete-image \
+              --repository-name "$REPO_NAME" \
+              --region "$REGION" \
+              --image-ids "$IMAGE_IDS"
+          else
+            echo "No untagged images found."
+          fi
 
   scan:
     name: "🔍 Scan Image with Trivy"
