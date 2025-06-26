@@ -13,7 +13,7 @@ jobs:
     name: "🐳 Build & Push Image"
     runs-on: ubuntu-latest
     outputs:
-      image_uri: ${{ steps.build-image.outputs.image_uri }}
+      image_uri: ${{ steps.build_image.outputs.image_uri }}
     steps:
       - name: "🔄 Checkout repository"
         uses: actions/checkout@v3
@@ -43,7 +43,7 @@ jobs:
 
 
       - name: "🐳 Build & Push Docker image"
-        id: build-image
+        id: build_image
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
