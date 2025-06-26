@@ -31,6 +31,16 @@ jobs:
 
       - name: "🔓 Login to ECR"
         uses: aws-actions/amazon-ecr-login@v1
+    
+      - name: "🔒 Docker login to private ECR"
+        run: |
+            aws ecr get-login-password \
+                --region ${{ secrets.AWS_REGION }} \
+            | docker login \
+                --username AWS \
+                --password-stdin \
+                ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
 
       - name: "🐳 Build & Push Docker image"
         id: build-image
