@@ -32,9 +32,9 @@ jobs:
       - name: "🔓 Login to ECR"
         uses: aws-actions/amazon-ecr-login@v1
 
-       - name: "🐳 Build & Push Docker Image"
-         uses: docker/build-push-action@v3
-         with:
+      - name: "🐳 Build & Push Docker Image"
+        uses: docker/build-push-action@v3
+        with:
             context: .
             file: Dockerfile.lambda
             push: true
