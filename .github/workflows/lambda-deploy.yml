@@ -54,7 +54,7 @@ jobs:
             -t $IMAGE_URI \
             .
           docker push $IMAGE_URI
-          IMAGE_URI="some-fake-value:latest"
+          IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
           echo "DEBUG: $IMAGE_URI"
           echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
     
