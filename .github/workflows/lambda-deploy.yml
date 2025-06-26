@@ -31,29 +31,16 @@ jobs:
 
       - name: "🔓 Login to ECR"
         uses: aws-actions/amazon-ecr-login@v1
-    
-      - name: "🔒 Docker login to private ECR"
-        run: |
-            aws ecr get-login-password \
-                --region ${{ secrets.AWS_REGION }} \
-            | docker login \
-                --username AWS \
-                --password-stdin \
-                ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-
-      - name: "🐳 Build & Push Docker image"
-        id: build-image
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
-          docker buildx build \
-            --platform linux/amd64 \
-            -f Dockerfile.lambda \
-            -t $IMAGE_URI \
-            .
-          docker push $IMAGE_URI
-          echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+       - name: "🐳 Build & Push Docker Image"
+         uses: docker/build-push-action@v3
+         with:
+            context: .
+            file: Dockerfile.lambda
+            push: true
+            tags: ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+            platforms: linux/amd64
+         
 
   scan:
     name: "🔍 Scan Image with Trivy"
