@@ -54,6 +54,8 @@ jobs:
             .
           docker push $IMAGE_URI
           echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+          echo "DEBUG - $IMAGE_URI"
+          ls -la
     
       - name: "🧹 Cleanup all untagged images in ECR"
         run: |
