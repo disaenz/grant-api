@@ -103,7 +103,7 @@ All sensitive values (ECR repo, image URI, AWS credentials) are stored as GitHub
 
 ## 📜 Fork & Attribution
 
-This repository is a personal portfolio maintained by Daniel Saenz. Feel free to fork and adapt it for your own use. If you do, please credit the original author in your project documentation or README.
+This project is open source under the [MIT License](./license.md).  
 
 ---
 
