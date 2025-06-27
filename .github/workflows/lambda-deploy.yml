@@ -2,8 +2,10 @@ name: "🐳 Docker CI/CD: Build, Scan & Deploy Lambda 🚀"
 
 on:
   push:
-    branches:
-      - dev
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 env:
   ECR_REPOSITORY: grant-api
@@ -81,6 +83,7 @@ jobs:
     name: "🚀 Deploy to Lambda"
     runs-on: ubuntu-latest
     needs: scan
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
       - name: "🔐 Configure AWS credentials"
         uses: aws-actions/configure-aws-credentials@v2
