@@ -5,7 +5,7 @@ from schemas.error import APIError
 from typing import Optional
 
 
-DATE_FMT = "%m-%d-%Y"
+DATE_FMT = "%m/%d/%Y"
 ALLOWED_STATUSES = {"Closed", "Active", "Pending"}
 ALLOWED_TYPES = {"New", "Continuation", "Renewal", "Extended", "Closed"}
 
