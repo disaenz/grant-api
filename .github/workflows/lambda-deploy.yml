@@ -1,4 +1,4 @@
-name: "🐳 Docker CI/CD: Build, Scan & Deploy Lambda 🚀"
+name: "🐳 CI/CD Pipeline for Grant API 🚀"
 
 on:
   push:
