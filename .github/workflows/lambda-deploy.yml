@@ -1,0 +1,99 @@
+name: "🐳 Docker CI/CD: Build, Scan & Deploy Lambda 🚀"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  ECR_REPOSITORY: grant-api
+
+jobs:
+  build:
+    name: "🐳 Build & Push Image"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "🔄 Checkout repository"
+        uses: actions/checkout@v3
+
+      - name: "🔐 Configure AWS credentials"
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: "🔓 Login to ECR"
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: "🐳 Build & Push Docker image"
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -f Dockerfile.lambda \
+            -t ${{ secrets.IMAGE_URI }} \
+            .
+          docker push ${{ secrets.IMAGE_URI }}
+
+      - name: "🧹 Cleanup all untagged images in ECR"
+        run: |
+          REPO_NAME=${{ env.ECR_REPOSITORY }}
+          REGION=${{ secrets.AWS_REGION }}
+          IMAGE_IDS=$(aws ecr list-images \
+            --repository-name "$REPO_NAME" \
+            --region "$REGION" \
+            --filter tagStatus=UNTAGGED \
+            --query 'imageIds' \
+            --output json)
+          if [ "$IMAGE_IDS" != "[]" ]; then
+            echo "Deleting untagged images..."
+            aws ecr batch-delete-image \
+              --repository-name "$REPO_NAME" \
+              --region "$REGION" \
+              --image-ids "$IMAGE_IDS"
+          else
+            echo "No untagged images found."
+          fi
+
+  scan:
+    name: "🔍 Scan Image with Trivy"
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: "🔐 Configure AWS credentials"
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: "🔓 Login to ECR"
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: "🛡️ Scan image"
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.IMAGE_URI }}
+          severity: CRITICAL
+          exit-code: '1'
+
+  deploy:
+    name: "🚀 Deploy to Lambda"
+    runs-on: ubuntu-latest
+    needs: scan
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    steps:
+      - name: "🔐 Configure AWS credentials"
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: "🚀 Update Lambda function"
+        run: |
+          aws lambda update-function-code \
+            --function-name grant-api \
+            --image-uri ${{ secrets.IMAGE_URI }}

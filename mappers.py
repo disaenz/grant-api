@@ -1,36 +1,58 @@
-
 from utils import format_date
+from schemas.grant import GrantCreate, GrantUpdate
+from typing import Any, Dict, List
+from models.grant import Grant as GrantModel
+from datetime import datetime
 
-def map_grant_response(grant):
+
+def map_grant_response(grant: GrantModel) -> Dict[str, Any]:
+    if not isinstance(grant, GrantModel):
+        raise TypeError(f"map_grant_response expected GrantModel, got {type(grant)}")
+
     return {
         "id": grant.id,
-        "calendarId": grant.calendar_id,  # if you want to expose this; otherwise, omit it.
-        "grantMakingProcess": grant.grant_making_process,
+        "name": grant.name,
         "program": grant.program,
-        "competitive": grant.competitive,
-        "typesOfApplication": grant.types_of_application,
-        "internalOrExternalReview": grant.internal_or_external_review,
-        "eGrantsOrNewSystem": grant.egrants_or_new_system,
-        "expectedApplicants": grant.expected_applicants,
-        "deadlineForKickOff": format_date(grant.deadline_for_kickoff),
-        "systemPrepDate": format_date(grant.system_prep_date),
-        "outreachStartDate": format_date(grant.outreach_start_date),
-        "recommendationPlanDate": grant.recommendation_plan_date,
-        "publishDevelopment": grant.publish_development,
-        "applicationDueDate": format_date(grant.application_due_date),
-        "reviewPeriod": grant.review_period,
-        "applicantClarification": grant.applicant_clarification,
-        "oroClarification": grant.oro_clarification,
-        "programPrepForDecision": grant.program_prep_for_decision,
-        "awardDecision": grant.award_decision,
-        "applicantNotification": grant.applicant_notification,
-        "finishTerms": format_date(grant.finish_terms),
-        "oroAwardProcessing": grant.oro_award_processing,
-        "budgetOfficeFundCommitment": grant.budget_office_fund_commitment,
-        "ogaAwardProcessing": grant.oga_award_processing,
-        "awardTarget": grant.award_target,
+        "type": grant.grant_type,
+        "status": grant.status,
+        "startDate": format_date(grant.start_date),
+        "deadline": format_date(grant.deadline),
+        "budgetRange": grant.budget_range,
+        "createdAt": grant.created_at.isoformat() if grant.created_at else None,
+        "updatedAt": grant.updated_at.isoformat() if grant.updated_at else None,
         "notes": grant.notes,
     }
 
-def map_grants_response(grants):
-    return [map_grant_response(grant) for grant in grants]
+def map_grants_response(grants: List[GrantModel]) -> List[Dict[str, Any]]:
+    return [map_grant_response(g) for g in grants]
+
+def map_create_to_model(grant_in: GrantCreate) -> dict:
+    
+    fmt = "%m-%d-%Y"
+
+    return {
+        "name": grant_in.name,
+        "program": grant_in.program,
+        "grant_type": grant_in.type,
+        "status": grant_in.status,
+        "start_date": datetime.strptime(grant_in.startDate, fmt).date(),
+        "deadline": datetime.strptime(grant_in.deadline, fmt).date(),
+        "budget_range": grant_in.budgetRange,
+        "notes": grant_in.notes,
+    }
+
+def map_update_to_model(grant_id: int, grant_in: GrantUpdate) -> dict:
+    
+    fmt = "%m-%d-%Y"
+
+    return {
+        "id": grant_id,
+        "name": grant_in.name,
+        "program": grant_in.program,
+        "grant_type": grant_in.type,
+        "status": grant_in.status,
+        "start_date": datetime.strptime(grant_in.startDate, fmt).date(),
+        "deadline": datetime.strptime(grant_in.deadline, fmt).date(),
+        "budget_range": grant_in.budgetRange,
+        "notes": grant_in.notes,
+    }
