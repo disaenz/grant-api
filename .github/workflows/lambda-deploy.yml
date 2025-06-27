@@ -1,4 +1,4 @@
-name: "🐳 CI/CD Pipeline for Grant API 🚀"
+name: "🐳 CI/CD Pipeline for Grant API"
 
 on:
   push:
