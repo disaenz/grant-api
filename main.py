@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(leve
 logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Grants API", 
-    version="1.0.0",    
+    version="1.0.1",    
     description="A simple CRUD service for managing grants",
     docs_url="/docs",                   
     redoc_url="/redoc",                 
