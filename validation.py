@@ -7,7 +7,7 @@ from typing import Optional
 
 DATE_FMT = "%m/%d/%Y"
 ALLOWED_STATUSES = {"Closed", "Active", "Pending"}
-ALLOWED_TYPES = {"New", "Continuation", "Renewal", "Extended", "Closed"}
+ALLOWED_TYPES = {"New", "Continuation", "Renewal", "Extended"}
 
 def _parse_date(date_str: str, field_name: str, required: bool = False) -> datetime.date:
     try:
