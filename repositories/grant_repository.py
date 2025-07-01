@@ -11,7 +11,7 @@ async def get_grant(db: AsyncSession, grant_id: int) -> Grant:
     return grant
 
 async def list_grants(db: AsyncSession) -> list[Grant]:
-    result = await db.execute(select(Grant))
+    result = await db.execute(select(Grant).order_by(Grant.id.asc()))
     return result.scalars().all()
 
 async def create_grant(db: AsyncSession, *, grant_in: dict) -> Grant:
